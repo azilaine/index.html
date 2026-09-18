@@ -348,8 +348,9 @@
 </head>
 <body>
 
-<!-- BGM Track configured on loop -->
+<!-- Audio Elements -->
 <audio id="custom-bgm" src="51383504-jembei-vgm-yume-clairx27s-theme-pokemon-gold-amp-silver-432397.mp3" loop></audio>
+<audio id="kiss-sfx" src="mixkit-little-cute-kiss-2192.wav" preload="auto"></audio>
 
 <div id="game-container">
   <div id="hud">
@@ -482,7 +483,6 @@
 
 <script>
   let audioCtx = null;
-  const kissSFX = new Audio('mixkit-little-cute-kiss-2192.mp3');
 
   function ensureAudioContext() {
     if (!audioCtx) {
@@ -495,6 +495,16 @@
 
   function startAudioTrack() {
     ensureAudioContext();
+
+    // Warm up the kiss sound effect track inside user interaction
+    const kissSFX = document.getElementById('kiss-sfx');
+    if (kissSFX) {
+      kissSFX.play().then(() => {
+        kissSFX.pause();
+        kissSFX.currentTime = 0;
+      }).catch(e => console.log('SFX unlock error:', e));
+    }
+
     const bgm = document.getElementById('custom-bgm');
     if (bgm) {
       bgm.play().catch(e => console.log('Audio autoplay prevented:', e));
@@ -765,10 +775,13 @@
   // Trigger Kiss & Hug Action on B
   function triggerKissAndHug() {
     if (!gameStarted) return;
+    ensureAudioContext();
 
-    // Reset playback position and play custom kiss audio
-    kissSFX.currentTime = 0;
-    kissSFX.play().catch(e => console.log('Audio error:', e));
+    const kissSFX = document.getElementById('kiss-sfx');
+    if (kissSFX) {
+      kissSFX.currentTime = 0;
+      kissSFX.play().catch(e => console.log('Audio error:', e));
+    }
 
     const pop = document.createElement('div');
     pop.className = 'kiss-hug-pop';
@@ -784,13 +797,15 @@
 
   window.addEventListener('keydown', (e) => {
     if (!gameStarted) return;
+    const key = e.key.toLowerCase();
     const step = 12;
-    if (e.key === 'ArrowUp' || e.key === 'w') move(0, -step);
-    if (e.key === 'ArrowDown' || e.key === 's') move(0, step);
-    if (e.key === 'ArrowLeft' || e.key === 'a') move(-step, 0);
-    if (e.key === 'ArrowRight' || e.key === 'd') move(step, 0);
-    if (e.key === 'a' || e.key === 'A' || e.key === ' ') checkInteractions(true);
-    if (e.key === 'b' || e.key === 'B') triggerKissAndHug();
+
+    if (key === 'arrowup' || key === 'w') move(0, -step);
+    if (key === 'arrowdown' || key === 's') move(0, step);
+    if (key === 'arrowleft') move(-step, 0);
+    if (key === 'arrowright') move(step, 0);
+    if (key === 'e' || key === ' ') checkInteractions(true);
+    if (key === 'b') triggerKissAndHug();
   });
 
   const speed = 14;
